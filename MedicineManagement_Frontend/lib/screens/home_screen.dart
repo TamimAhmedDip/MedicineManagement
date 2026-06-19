@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:meds_manager/services/recording_services.dart';
 
 enum RecordingState { idle, recording, processing, success, error }
 
@@ -11,43 +12,56 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   RecordingState _currentState = RecordingState.idle;
+  final RecordingService _record = RecordingService();
+  String? _recordingPath;
   Widget _buildMicButton() {
-    return AnimatedContainer(
-      duration: Duration(milliseconds: 300),
-      width: _currentState == RecordingState.recording ? 120 : 80,
-      height: _currentState == RecordingState.recording ? 120 : 80,
-      decoration: BoxDecoration(
-        color: _currentState == RecordingState.recording
-            ? Colors.red
-            : Colors.blue,
-        shape: BoxShape.circle
+    return GestureDetector(
+      onTap: () async {
+        if (_currentState == RecordingState.idle) {
+          await _record.startRecording();
+          setState(() {
+            _currentState = RecordingState.recording;
+          });
+        } else if (_currentState == RecordingState.recording) {
+          final path = await _record.stopRecording();
+          setState(() {
+            _recordingPath = path;
+            _currentState = RecordingState.processing;
+          });
+        }
+      },
+      child: AnimatedContainer(
+        duration: Duration(milliseconds: 300),
+        width: _currentState == RecordingState.recording ? 120 : 80,
+        height: _currentState == RecordingState.recording ? 120 : 80,
+        decoration: BoxDecoration(
+          color: _currentState == RecordingState.recording
+              ? Colors.red
+              : Colors.blue,
+          shape: BoxShape.circle,
+        ),
+        child: Icon(Icons.mic),
       ),
-      child: Icon(Icons.mic),
     );
   }
 
   Widget _buildBody(RecordingState currentState) {
     switch (currentState) {
       case RecordingState.idle:
-        return Column(
-          children: [
-            Text('Idle'),
-            _buildMicButton(),
-          ],
-        );
+        return Column(children: [Text('Idle'), _buildMicButton()]);
       case RecordingState.recording:
-        return Column(
-          children: [
-            Text('Recording'),
-            _buildMicButton(),
-          ],
-        );
+        return Column(children: [Text('Recording'), _buildMicButton()]);
       case RecordingState.processing:
         return Column(
           children: [Text('Processing'), Icon(Icons.hourglass_bottom)],
         );
       case RecordingState.success:
-        return Column(children: [Text('Success'), Icon(Icons.check_circle)]);
+        return Column(
+          children: [
+            Text('Success, recording saved in $_recordingPath'),
+            Icon(Icons.check_circle),
+          ],
+        );
       case RecordingState.error:
         return Column(children: [Text('Error'), Icon(Icons.error)]);
     }
