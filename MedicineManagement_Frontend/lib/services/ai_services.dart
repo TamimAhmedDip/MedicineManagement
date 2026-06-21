@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:meds_manager/config/api_keys.dart';
+import 'package:google_generative_ai/google_generative_ai.dart';
 
 class AiServices {
   Future<String?> transcribeAudio(String filePath) async {
@@ -32,5 +33,16 @@ class AiServices {
     }
     final data = jsonDecode(response.body);
     return data['results'][0]['alternatives'][0]['transcript'];
+  }
+
+  Future<String?> summarizeText(String transcription) async {
+    String geminiKey = apiKeys().geminiKey;
+    final model = GenerativeModel(model: 'gemini-3.5-flash', apiKey: geminiKey);
+    final response = await model.generateContent([
+      Content.text(
+        'Following is a bangla transcript of an audio recording. Your task is to read it, understand it in and then output me a summary of the audio in English. The transcript reads: $transcription',
+      ),
+    ]);
+    return response.text;
   }
 }

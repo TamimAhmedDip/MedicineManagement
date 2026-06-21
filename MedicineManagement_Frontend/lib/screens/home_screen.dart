@@ -15,7 +15,7 @@ class _HomeScreenState extends State<HomeScreen> {
   RecordingState _currentState = RecordingState.idle;
   final RecordingService _record = RecordingService();
   final AiServices _aiSpeechToText = AiServices();
-  String? _transcript;
+  String? _summary;
   Widget _buildMicButton() {
     return GestureDetector(
       onTap: () async {
@@ -34,8 +34,13 @@ class _HomeScreenState extends State<HomeScreen> {
             _currentState = RecordingState.processing;
           });
           final transcript = await _aiSpeechToText.transcribeAudio(path);
+          if(transcript == null)
+          {
+            return;
+          }
+          final summary = await _aiSpeechToText.summarizeText(transcript);
           setState(() {
-            _transcript = transcript;
+            _summary = summary;
             _currentState = RecordingState.success;
           });
         }
@@ -68,7 +73,7 @@ class _HomeScreenState extends State<HomeScreen> {
       case RecordingState.success:
         return Column(
           children: [
-            Text('Success, your transcription is: $_transcript'),
+            Text('Success, your transcription is: $_summary'),
             Icon(Icons.check_circle),
           ],
         );
