@@ -15,7 +15,6 @@ class AiServices {
         'model': 'latest_long',
         'encoding': 'LINEAR16',
         'sampleRateHertz': 16000,
-        'audioChennelCount': 1,
       },
       'audio': {'content': base64Audio},
     };
