@@ -9,7 +9,6 @@ class RecordingService {
   bool get isRecording => _isRecording;
 
   Future<void> startRecording() async {
-    print('START called');
     bool grantedPermission = await requestPermission();
     if (!grantedPermission) {
       throw Exception("Permission denied.");
@@ -32,7 +31,6 @@ class RecordingService {
     if (!_isRecording) {
       return null;
     }
-    print("Record end");
     final path = await _recorder.stop();
     _isRecording = false;
     return path;

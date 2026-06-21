@@ -8,10 +8,6 @@ class AiServices {
     final file = File(filePath);
     final bytes = await file.readAsBytes();
     final base64Audio = base64Encode(bytes);
-    print('Base64 length: ${base64Audio.length}');
-    print('First 100 chars: ${base64Audio.substring(0, 100)}');
-    print('File exists: ${await file.exists()}');
-    print('File size: ${await file.length()} bytes');
 
     final requestBody = {
       'config': {
@@ -19,6 +15,7 @@ class AiServices {
         'model': 'latest_long',
         'encoding': 'LINEAR16',
         'sampleRateHertz': 16000,
+        'audioChennelCount': 1,
       },
       'audio': {'content': base64Audio},
     };
@@ -32,10 +29,8 @@ class AiServices {
       body: jsonEncode(requestBody),
     );
     if (response.statusCode != 200) {
-      print("Error: ${response.body}");
       return null;
     }
-    print("Success: ${response.body}");
     final data = jsonDecode(response.body);
     return data['results'][0]['alternatives'][0]['transcript'];
   }
