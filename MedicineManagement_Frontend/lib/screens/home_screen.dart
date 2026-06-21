@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:meds_manager/services/recording_services.dart';
+import 'package:meds_manager/services/ai_services.dart';
 
 enum RecordingState { idle, recording, processing, success, error }
 
@@ -13,7 +14,8 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   RecordingState _currentState = RecordingState.idle;
   final RecordingService _record = RecordingService();
-  String? _recordingPath;
+  final AiServices _aiSpeechToText = AiServices();
+  String? _transcript;
   Widget _buildMicButton() {
     return GestureDetector(
       onTap: () async {
@@ -24,9 +26,17 @@ class _HomeScreenState extends State<HomeScreen> {
           });
         } else if (_currentState == RecordingState.recording) {
           final path = await _record.stopRecording();
+          if(path == null)
+          {
+            return;
+          }
           setState(() {
-            _recordingPath = path;
             _currentState = RecordingState.processing;
+          });
+          final transcript = await _aiSpeechToText.transcribeAudio(path);
+          setState(() {
+            _transcript = transcript;
+            _currentState = RecordingState.success;
           });
         }
       },
@@ -58,7 +68,7 @@ class _HomeScreenState extends State<HomeScreen> {
       case RecordingState.success:
         return Column(
           children: [
-            Text('Success, recording saved in $_recordingPath'),
+            Text('Success, your transcription is: $_transcript'),
             Icon(Icons.check_circle),
           ],
         );

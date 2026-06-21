@@ -9,14 +9,22 @@ class RecordingService {
   bool get isRecording => _isRecording;
 
   Future<void> startRecording() async {
+    print('START called');
     bool grantedPermission = await requestPermission();
     if (!grantedPermission) {
       throw Exception("Permission denied.");
     }
     final directory = await getApplicationDocumentsDirectory();
     final path =
-        '${directory.path}/recording_${DateTime.now().millisecondsSinceEpoch}.m4a';
-    await _recorder.start(const RecordConfig(), path: path);
+        '${directory.path}/recording_${DateTime.now().millisecondsSinceEpoch}.wav';
+    await _recorder.start(
+      const RecordConfig(
+        encoder: AudioEncoder.pcm16bits,
+        sampleRate: 16000,
+        numChannels: 1,
+      ),
+      path: path,
+    );
     _isRecording = true;
   }
 
@@ -24,6 +32,7 @@ class RecordingService {
     if (!_isRecording) {
       return null;
     }
+    print("Record end");
     final path = await _recorder.stop();
     _isRecording = false;
     return path;
@@ -34,8 +43,8 @@ class RecordingService {
 
     return status.isGranted;
   }
-  
-  void dispose(){
+
+  void dispose() {
     _recorder.dispose();
   }
 }
